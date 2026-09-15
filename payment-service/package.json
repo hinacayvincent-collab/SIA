@@ -1,0 +1,14 @@
+{
+  "name": "payment-service",
+  "version": "1.0.0",
+  "description": "Payment Service - the ONLY service that talks to PayMongo",
+  "main": "index.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "dotenv": "^16.4.5"
+  }
+}
