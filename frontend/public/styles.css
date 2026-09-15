@@ -1,0 +1,340 @@
+:root {
+  --navy: #17233D;
+  --navy-2: #223257;
+  --gold: #D9A441;
+  --gold-dark: #B9862F;
+  --paper: #EDF0F4;
+  --panel: #FFFFFF;
+  --line: #D7DCE3;
+  --ink: #17233D;
+  --ink-soft: #5B6B85;
+  --success: #2E7D53;
+  --error: #B3432B;
+
+  --font-display: "Space Grotesk", "Segoe UI", sans-serif;
+  --font-body: "Inter", "Segoe UI", sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+.wrap {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+/* ---------- Header ---------- */
+
+.site-header {
+  background: var(--navy);
+  color: #fff;
+  padding: 56px 0 64px;
+}
+
+.eyebrow {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin: 0 0 14px;
+}
+
+.site-header h1 {
+  font-family: var(--font-display);
+  font-size: clamp(28px, 4vw, 44px);
+  font-weight: 700;
+  line-height: 1.15;
+  margin: 0 0 12px;
+  max-width: 20ch;
+}
+
+.subhead {
+  font-size: 15px;
+  color: #C4CCDC;
+  margin: 0;
+  max-width: 46ch;
+}
+
+/* ---------- Layout ---------- */
+
+.layout {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 40px;
+  align-items: start;
+  margin-top: -32px;
+  padding-bottom: 64px;
+}
+
+@media (max-width: 800px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---------- Catalog ---------- */
+
+.catalog {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 28px;
+  box-shadow: 0 12px 32px -20px rgba(23, 35, 61, 0.35);
+}
+
+.catalog-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.catalog-head h2 {
+  font-family: var(--font-display);
+  font-size: 20px;
+  margin: 0;
+}
+
+.status-text {
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+
+.status-text.error { color: var(--error); }
+
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.product-card {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: var(--paper);
+}
+
+.product-card h3 {
+  font-family: var(--font-display);
+  font-size: 16px;
+  margin: 0;
+}
+
+.product-card p {
+  font-size: 13px;
+  color: var(--ink-soft);
+  margin: 0;
+  flex-grow: 1;
+}
+
+.product-price {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--navy);
+}
+
+.qty-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.qty-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: 1px solid var(--line);
+  background: #fff;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--navy);
+}
+
+.qty-btn:hover { border-color: var(--navy); }
+
+.qty-value {
+  min-width: 18px;
+  text-align: center;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.add-btn {
+  margin-top: 4px;
+  background: var(--navy);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 9px 12px;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.add-btn:hover { background: var(--navy-2); }
+.add-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ---------- Ticket panel (signature element) ---------- */
+
+.ticket-panel {
+  position: sticky;
+  top: 24px;
+}
+
+.ticket {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 16px 40px -22px rgba(23, 35, 61, 0.4);
+}
+
+.ticket-top {
+  padding: 22px 22px 18px;
+  background: var(--navy);
+  color: #fff;
+}
+
+.ticket-label {
+  font-family: var(--font-display);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin: 0 0 6px;
+}
+
+.ticket-top h3 {
+  font-family: var(--font-display);
+  font-size: 18px;
+  margin: 0;
+}
+
+.perforation {
+  height: 0;
+  border-top: 2px dashed var(--line);
+  position: relative;
+}
+
+.perforation::before,
+.perforation::after {
+  content: "";
+  position: absolute;
+  top: -9px;
+  width: 18px;
+  height: 18px;
+  background: var(--paper);
+  border-radius: 50%;
+}
+
+.perforation::before { left: -9px; }
+.perforation::after { right: -9px; }
+
+.ticket-body {
+  padding: 18px 22px;
+  min-height: 60px;
+}
+
+.ticket-items {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ticket-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 14px;
+}
+
+.ticket-item .name { color: var(--ink); }
+.ticket-item .qty { color: var(--ink-soft); font-size: 12px; }
+.ticket-item .amount { font-weight: 600; white-space: nowrap; }
+
+.ticket-empty {
+  font-size: 13px;
+  color: var(--ink-soft);
+  margin: 0;
+}
+
+.ticket-bottom {
+  padding: 18px 22px 24px;
+}
+
+.ticket-total-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 16px;
+}
+
+.btn {
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: 8px;
+  border: none;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.05s ease;
+}
+
+.btn:active { transform: translateY(1px); }
+
+.btn-primary {
+  background: var(--gold);
+  color: var(--navy);
+}
+
+.btn-primary:hover:not(:disabled) { background: var(--gold-dark); }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.ticket-message {
+  font-size: 12.5px;
+  margin: 12px 0 0;
+  color: var(--ink-soft);
+  min-height: 16px;
+}
+
+.ticket-message.error { color: var(--error); }
+.ticket-message.success { color: var(--success); }
+
+/* ---------- Footer ---------- */
+
+.site-footer {
+  border-top: 1px solid var(--line);
+  padding: 20px 0 40px;
+}
+
+.site-footer p {
+  font-size: 12.5px;
+  color: var(--ink-soft);
+  margin: 0;
+}
