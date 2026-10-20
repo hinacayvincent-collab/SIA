@@ -28,6 +28,10 @@ app.post("/orders", async (req, res) => {
     // Never trust price data sent from the client.
     const lineItems = [];
     for (const { productId, quantity } of items) {
+      const qty = Number(quantity);
+      if (!Number.isInteger(qty) || qty < 1) {
+        return res.status(400).json({ error: "quantity must be a positive integer" });
+      }
       const productRes = await fetch(`${PRODUCT_SERVICE_URL}/products/${productId}`);
       if (!productRes.ok) {
         return res.status(400).json({ error: `Unknown product: ${productId}` });
@@ -38,7 +42,7 @@ app.post("/orders", async (req, res) => {
         name: product.name,
         description: product.description,
         amount: product.price, // centavos
-        quantity: quantity || 1,
+        quantity: qty,
       });
     }
 
@@ -122,10 +126,12 @@ app.get("/orders/:id/success", (req, res) => {
   const order = orders.get(req.params.id);
   if (!order) return res.status(404).send("Order not found");
   order.status = "paid";
-  res.send(`
-    <h1>Payment received</h1>
-    <p>Order <strong>${order.id}</strong> is now marked as <strong>paid</strong>.</p>
-  `);
+  res.type("html").send(renderReturnPage({
+    title: "Payment received",
+    orderId: order.id,
+    status: order.status,
+    message: `Order ${order.id} is now marked as paid.`,
+  }));
 });
 
 // PayMongo redirects here if the customer cancels/backs out.
@@ -133,11 +139,36 @@ app.get("/orders/:id/cancel", (req, res) => {
   const order = orders.get(req.params.id);
   if (!order) return res.status(404).send("Order not found");
   order.status = "cancelled";
-  res.send(`
-    <h1>Payment cancelled</h1>
-    <p>Order <strong>${order.id}</strong> was not completed.</p>
-  `);
+  res.type("html").send(renderReturnPage({
+    title: "Payment cancelled",
+    orderId: order.id,
+    status: order.status,
+    message: `Order ${order.id} was not completed.`,
+  }));
 });
+
+function renderReturnPage({ title, orderId, status, message }) {
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>${title}</title>
+</head>
+<body>
+  <h1>${title}</h1>
+  <p>${message}</p>
+  <p>Order <strong data-cy="order-id">${orderId}</strong>
+    is <strong data-cy="order-status">${status}</strong>.</p>
+</body>
+</html>`;
+}
+
+if (process.env.ENABLE_TEST_RESET === "true") {
+  app.post("/test/reset", (req, res) => {
+    orders.clear();
+    res.json({ data: { reset: true } });
+  });
+}
 
 app.get("/health", (req, res) => res.json({ status: "ok", service: "order-service" }));
 

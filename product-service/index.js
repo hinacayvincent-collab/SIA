@@ -5,27 +5,8 @@ const app = express();
 app.use(cors());
 const PORT = process.env.PORT || 3001;
 
-// In-memory product catalog. Prices are in CENTAVOS (PHP x 100).
-const PRODUCTS = [
-  {
-    id: "prod_001",
-    name: "SIA1 T-Shirt",
-    price: 35000, // PHP 350.00
-    description: "Official SIA1 class shirt",
-  },
-  {
-    id: "prod_002",
-    name: "SIA1 Tote Bag",
-    price: 15000, // PHP 150.00
-    description: "Canvas tote with class logo",
-  },
-  {
-    id: "prod_003",
-    name: "SIA1 Sticker Pack",
-    price: 5000, // PHP 50.00
-    description: "Set of 5 vinyl stickers",
-  },
-];
+// Seeded catalog with fixed names and prices (centavos) so every E2E run sees the same data.
+const PRODUCTS = require("./data/products.json");
 
 app.get("/products", (req, res) => {
   res.json({ data: PRODUCTS });

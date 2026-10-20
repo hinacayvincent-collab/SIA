@@ -1,0 +1,20 @@
+[
+  {
+    "id": "prod_001",
+    "name": "SIA1 T-Shirt",
+    "price": 35000,
+    "description": "Official SIA1 class shirt"
+  },
+  {
+    "id": "prod_002",
+    "name": "SIA1 Tote Bag",
+    "price": 15000,
+    "description": "Canvas tote with class logo"
+  },
+  {
+    "id": "prod_003",
+    "name": "SIA1 Sticker Pack",
+    "price": 5000,
+    "description": "Set of 5 vinyl stickers"
+  }
+]

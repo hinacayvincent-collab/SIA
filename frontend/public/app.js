@@ -26,6 +26,10 @@ function formatPeso(centavos) {
 function setMessage(text, kind) {
   ticketMessageEl.textContent = text || "";
   ticketMessageEl.className = `ticket-message${kind ? " " + kind : ""}`;
+  ticketMessageEl.setAttribute(
+    "data-cy",
+    kind === "error" ? "checkout-error" : "ticket-message",
+  );
 }
 
 // ---- Load catalog from Product Service ----
@@ -51,16 +55,17 @@ function renderProducts() {
   for (const product of products) {
     const card = document.createElement("div");
     card.className = "product-card";
+    card.setAttribute("data-cy", "product-card");
     card.innerHTML = `
-      <h3>${product.name}</h3>
+      <h3 data-cy="product-name">${product.name}</h3>
       <p>${product.description}</p>
-      <div class="product-price">${formatPeso(product.price)}</div>
+      <div class="product-price" data-cy="product-price">${formatPeso(product.price)}</div>
       <div class="qty-row">
-        <button class="qty-btn" data-action="dec" aria-label="Decrease quantity">−</button>
-        <span class="qty-value">${cartQuantities[product.id]}</span>
-        <button class="qty-btn" data-action="inc" aria-label="Increase quantity">+</button>
+        <button class="qty-btn" data-action="dec" data-cy="qty-dec" aria-label="Decrease quantity">−</button>
+        <span class="qty-value" data-cy="qty-value">${cartQuantities[product.id]}</span>
+        <button class="qty-btn" data-action="inc" data-cy="qty-inc" aria-label="Increase quantity">+</button>
       </div>
-      <button class="add-btn" data-action="add">Add to order</button>
+      <button class="add-btn" data-action="add" data-cy="add-to-cart">Add to order</button>
     `;
 
     const qtyValueEl = card.querySelector(".qty-value");
@@ -77,6 +82,10 @@ function renderProducts() {
 
     card.querySelector('[data-action="add"]').addEventListener("click", () => {
       const qty = cartQuantities[product.id];
+      if (!Number.isInteger(qty) || qty < 1) {
+        setMessage("Quantity must be at least 1.", "error");
+        return;
+      }
       const existing = cart.get(product.id);
       cart.set(product.id, {
         product,
@@ -98,13 +107,11 @@ function renderTicket() {
     ticketEmptyEl.hidden = false;
     ticketHeading.textContent = "No items yet";
     ticketTotalEl.textContent = formatPeso(0);
-    placeOrderBtn.disabled = true;
     return;
   }
 
   ticketEmptyEl.hidden = true;
   ticketHeading.textContent = "Ready to order";
-  placeOrderBtn.disabled = false;
 
   let total = 0;
   for (const { product, quantity } of cart.values()) {
@@ -125,7 +132,10 @@ function renderTicket() {
 
 // ---- Place order with the Order Service ----
 placeOrderBtn.addEventListener("click", async () => {
-  if (cart.size === 0) return;
+  if (cart.size === 0) {
+    setMessage("Your cart is empty. Add a product before checking out.", "error");
+    return;
+  }
 
   placeOrderBtn.disabled = true;
   setMessage("Placing your order…");

@@ -1,0 +1,14 @@
+{
+  "name": "sia1-paymongo-checkout",
+  "private": true,
+  "version": "1.0.0",
+  "description": "PayMongo checkout microservices with Cypress E2E tests",
+  "scripts": {
+    "seed": "node scripts/seed.js",
+    "test:e2e": "cypress run",
+    "cypress:open": "cypress open"
+  },
+  "devDependencies": {
+    "cypress": "^15.4.0"
+  }
+}
