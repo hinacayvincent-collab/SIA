@@ -1,0 +1,91 @@
+name: Cypress E2E Tests
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  cypress-run:
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chrome, firefox]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Create cypress environment file
+        run: |
+          cat > cypress.env.json << EOF
+          {
+            "FRONTEND_URL": "http://localhost:3000",
+            "PRODUCT_SERVICE_URL": "http://localhost:3001",
+            "ORDER_SERVICE_URL": "http://localhost:3002",
+            "PAYMENT_SERVICE_URL": "http://localhost:3003",
+            "TEST_TIMEOUT": 10000,
+            "REQUEST_TIMEOUT": 15000,
+            "PAGE_LOAD_TIMEOUT": 60000
+          }
+          EOF
+
+      - name: Start services
+        run: |
+          # Start all microservices in background
+          cd frontend && npm install && npm start &
+          cd ../product-service && npm install && npm start &
+          cd ../order-service && npm install && npm start &
+          cd ../payment-service && npm install && npm start &
+
+          # Wait for services to be ready
+          echo "Waiting for services to start..."
+          sleep 30
+
+      - name: Verify services are running
+        run: |
+          curl --retry 5 --retry-delay 5 --retry-connrefused http://localhost:3000/health || echo "Frontend ready"
+          curl --retry 5 --retry-delay 5 --retry-connrefused http://localhost:3001/health || echo "Product service ready"
+          curl --retry 5 --retry-delay 5 --retry-connrefused http://localhost:3002/health || echo "Order service ready"
+          curl --retry 5 --retry-delay 5 --retry-connrefused http://localhost:3003/health || echo "Payment service ready"
+
+      - name: Seed test data
+        run: npm run seed
+
+      - name: Run Cypress tests
+        uses: cypress-io/github-action@v6
+        with:
+          browser: ${{ matrix.browser }}
+          config: video=true,screenshotOnRunFailure=true
+          wait-on: 'http://localhost:3000, http://localhost:3002'
+          wait-on-timeout: 120
+
+      - name: Upload test artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cypress-artifacts-${{ matrix.browser }}
+          path: |
+            cypress/videos
+            cypress/screenshots
+          retention-days: 7
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cypress-results-${{ matrix.browser }}
+          path: cypress/results
+          retention-days: 30

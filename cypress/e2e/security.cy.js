@@ -1,30 +1,55 @@
 describe("Security", () => {
+  let paymongo;
+  let products;
+
+  before(() => {
+    paymongo = Cypress.env("paymongo");
+    products = Cypress.env("products").products;
+  });
+
+  beforeEach(() => {
+    cy.resetOrders();
+  });
+
   it("E2E-08: keeps the secret key out of the browser", () => {
-    cy.intercept("https://api.paymongo.com/**", cy.spy().as("browserToPayMongo"));
+    // Intercept any direct browser calls to PayMongo API
+    cy.intercept(`https://${paymongo.apiDomain}/**`, cy.spy().as("browserToPayMongo"));
     cy.intercept("POST", "**/checkout").as("checkout");
 
     cy.visit("/");
 
+    // Check that secret keys are not in the HTML source
     cy.document().then((doc) => {
       const html = doc.documentElement.outerHTML;
-      expect(html).to.not.include("sk_test_");
-      expect(html).to.not.include("sk_live_");
+      paymongo.secretKeyPatterns.forEach((pattern) => {
+        expect(html).to.not.include(pattern);
+      });
     });
 
+    // Check that secret keys are not in bundled JavaScript
     cy.request("/app.js").then((res) => {
-      expect(res.body).to.not.include("sk_test_");
-      expect(res.body).to.not.include("sk_live_");
+      paymongo.secretKeyPatterns.forEach((pattern) => {
+        expect(res.body).to.not.include(pattern);
+      });
     });
 
-    cy.addProductToCart("SIA1 T-Shirt");
+    // Perform checkout flow
+    const testProduct = products.find(p => p.id === "prod_001");
+    cy.addProductToCart(testProduct.name);
     cy.get("[data-cy=place-order-button]").click();
-    cy.get("[data-cy=checkout-button]").should("be.visible").click();
+    cy.get("[data-cy=checkout-button]")
+      .should("be.visible")
+      .and("not.be.disabled")
+      .click();
+
     cy.wait("@checkout");
 
+    // Verify browser never called PayMongo API directly
     cy.get("@browserToPayMongo").should("not.have.been.called");
 
-    cy.origin("https://checkout.paymongo.com", () => {
-      cy.location("hostname").should("eq", "checkout.paymongo.com");
+    // Verify redirect to PayMongo checkout (hostname verification only)
+    cy.origin(`https://${paymongo.checkoutDomain}`, { args: { domain: paymongo.checkoutDomain } }, ({ domain }) => {
+      cy.location("hostname").should("eq", domain);
     });
   });
 });

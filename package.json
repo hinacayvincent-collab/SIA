@@ -6,7 +6,13 @@
   "scripts": {
     "seed": "node scripts/seed.js",
     "test:e2e": "cypress run",
-    "cypress:open": "cypress open"
+    "test:e2e:headed": "cypress run --headed",
+    "test:e2e:chrome": "cypress run --browser chrome",
+    "test:e2e:firefox": "cypress run --browser firefox",
+    "test:e2e:ci": "cypress run --browser chrome --config video=true,screenshotOnRunFailure=true",
+    "cypress:open": "cypress open",
+    "test:setup": "npm run seed && echo 'Test environment ready'",
+    "clean:artifacts": "rm -rf cypress/videos/* cypress/screenshots/*"
   },
   "devDependencies": {
     "cypress": "^15.4.0"

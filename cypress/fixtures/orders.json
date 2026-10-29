@@ -1,0 +1,29 @@
+{
+  "sampleOrder": {
+    "items": [
+      {
+        "productId": "prod_001",
+        "quantity": 1
+      }
+    ],
+    "expectedTotal": 35000
+  },
+  "multiItemOrder": {
+    "items": [
+      {
+        "productId": "prod_001",
+        "quantity": 2
+      },
+      {
+        "productId": "prod_002",
+        "quantity": 1
+      }
+    ],
+    "expectedTotal": 85000
+  },
+  "orderStatuses": {
+    "pending": "pending",
+    "paid": "paid",
+    "cancelled": "cancelled"
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "products": [
+    {
+      "id": "prod_001",
+      "name": "SIA1 T-Shirt",
+      "price": 35000,
+      "priceFormatted": "₱350.00",
+      "description": "Premium cotton t-shirt with SIA1 branding"
+    },
+    {
+      "id": "prod_002",
+      "name": "SIA1 Tote Bag",
+      "price": 15000,
+      "priceFormatted": "₱150.00",
+      "description": "Durable canvas tote bag"
+    },
+    {
+      "id": "prod_003",
+      "name": "SIA1 Sticker Pack",
+      "price": 5000,
+      "priceFormatted": "₱50.00",
+      "description": "Set of 10 vinyl stickers"
+    }
+  ]
+}

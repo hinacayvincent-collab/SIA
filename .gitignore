@@ -1,7 +1,9 @@
 .env
 *.env
+!cypress.env.example.json
 node_modules/
 *.log
 cypress/videos/
 cypress/screenshots/
 cypress/downloads/
+cypress.env.json

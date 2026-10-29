@@ -1,0 +1,14 @@
+{
+  "checkoutUrlPattern": "^https:\\/\\/checkout\\.paymongo\\.com\\/",
+  "apiDomain": "api.paymongo.com",
+  "checkoutDomain": "checkout.paymongo.com",
+  "secretKeyPatterns": ["sk_test_", "sk_live_"],
+  "mockCheckoutResponse": {
+    "data": {
+      "checkoutUrl": "https://checkout.paymongo.com/test-session-12345"
+    }
+  },
+  "mockErrorResponse": {
+    "error": "Payment unavailable"
+  }
+}
