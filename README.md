@@ -1,125 +1,224 @@
-# Payments Microservice with PayMongo Checkout
+# SIA1 Final Project: PayMongo Checkout with Cypress E2E Testing
 
-Four pieces: a small storefront frontend, three independent services, and PayMongo's hosted Checkout API - all in sandbox/test mode.
+End-to-end testing suite for a microservices-based PayMongo checkout system, built for the System Integration and Architecture final project.
+
+## Team Members
+
+| Member          | Service         |
+| --------------- | --------------- |
+| Macoy Sambas    | Product Service |
+| Cergel Posadas  | Order Service   |
+| Vincent Hinacay | Payment Service |
+
+## Project Overview
+
+This project implements a complete e-commerce checkout flow integrated with PayMongo's Checkout API in test mode. The system is composed of four microservices:
+
+1. **Frontend** (port 3000) — Product catalog and shopping cart UI
+2. **Product Service** (port 3001) — Product data and pricing
+3. **Order Service** (port 3002) — Order management and PayMongo callback handling
+4. **Payment Service** (port 3003) — PayMongo Checkout API integration
+
+The final project deliverable is a comprehensive Cypress E2E test suite proving that all services work together correctly.
+
+## Prerequisites
+
+- **Node.js** LTS version (18, 20, or 22 recommended)
+- **npm** or **yarn**
+- **Internet connection** (for PayMongo sandbox API)
+- **PayMongo Test Account** with secret key configured in `payment-service/.env`
+
+## Architecture
 
 ```
-Browser (frontend, :3000)
-   ->  1. GET /products
-Product Service (3001)
-   ->  2. POST /orders            (place order)
-Order Service (3002)
-   ->  3. POST /orders/:id/checkout
-Payment Service (3003) -> 4. POST /v1/checkout_sessions -> PayMongo API
-   ->  5. { checkout_url }
-Browser -> 6. redirect -> PayMongo hosted checkout page
-                              7. customer pays, PayMongo redirects browser to:
-                              GET /orders/:id/success  (back on Order Service)
+Frontend (3000)          Product Service (3001)
+     ↓                           ↑
+     ↓                           |
+Order Service (3002) ←→ Payment Service (3003) ←→ PayMongo API
+     ↓
+     ↓ (success/cancel URLs)
+Customer's Browser
 ```
 
-Only **Payment Service** ever holds the PayMongo secret key or talks to `api.paymongo.com`. The frontend never touches PayMongo directly - it only talks to Product Service and Order Service.
+## Running the E2E Tests
 
-## 1. Install dependencies
+### 1. Install Dependencies
+
+From the project root:
 
 ```bash
-cd product-service && npm install && cd ..
-cd order-service && npm install && cd ..
-cd payment-service && npm install && cd ..
-cd frontend && npm install && cd ..
 npm install
 ```
 
-The last `npm install` (project root) installs Cypress for end-to-end tests.
+Then install dependencies for each service:
 
-## 2. Configure your PayMongo test key
+```bash
+cd frontend && npm install && cd ..
+cd product-service && npm install && cd ..
+cd order-service && npm install && cd ..
+cd payment-service && npm install && cd ..
+```
 
+### 2. Start All Services
+
+Open **four separate terminal windows** and start each service:
+
+**Terminal 1 — Frontend:**
+```bash
+cd frontend
+npm start
+```
+The frontend will run on `http://localhost:3000`
+
+**Terminal 2 — Product Service:**
+```bash
+cd product-service
+npm start
+```
+The product service will run on `http://localhost:3001`
+
+**Terminal 3 — Order Service:**
+```bash
+cd order-service
+ENABLE_TEST_RESET=true npm start
+```
+The order service will run on `http://localhost:3002`
+
+**Terminal 4 — Payment Service:**
 ```bash
 cd payment-service
-cp .env.example .env
-# edit .env and paste your sk_test_... key from the PayMongo dashboard
-cd ..
+npm start
 ```
+The payment service will run on `http://localhost:3003`
 
-## 3. Run everything (separate terminals)
+> **Note:** Make sure your PayMongo secret key is configured in `payment-service/.env`:
+> ```
+> PAYMONGO_SECRET_KEY=sk_test_your_key_here
+> ```
 
-```bash
-# Terminal 1
-cd product-service && npm start        # http://localhost:3001
+### 3. Seed Test Data
 
-# Terminal 2
-cd order-service && npm start          # http://localhost:3002
-
-# Terminal 3
-cd payment-service && npm start        # http://localhost:3003
-
-# Terminal 4
-cd frontend && npm start               # http://localhost:3000
-```
-
-Optional: start Order Service with `ENABLE_TEST_RESET=true` so Cypress can `POST /test/reset` between runs. Tests still create their own orders and pass without it.
-
-## 4. Try it in the browser
-
-Open **http://localhost:3000**. Add a product or two, click **Place order**, then **Pay with PayMongo**. You'll land on PayMongo's hosted checkout page - pay with a test card (any future expiry, any 3-digit CVC) or simulate a GCash/Maya authorization. PayMongo redirects you back to the Order Service's success page when you're done.
-
-## Or test with curl, no browser needed
-
-```bash
-# a) See the catalog
-curl http://localhost:3001/products
-
-# b) Create an order
-curl -X POST http://localhost:3002/orders \
-  -H "Content-Type: application/json" \
-  -d '{"items":[{"productId":"prod_001","quantity":1}]}'
-# note the returned order "id", e.g. ORD-AB12CD34
-
-# c) Start checkout for that order
-curl -X POST http://localhost:3002/orders/ORD-AB12CD34/checkout
-# returns { "data": { "checkoutUrl": "https://checkout.paymongo.com/..." } }
-
-# d) Open that checkoutUrl in a browser, pay with a PayMongo test card
-#    or simulated GCash/Maya authorization.
-
-# e) PayMongo redirects you to http://localhost:3002/orders/ORD-.../success
-#    Confirm the order is now paid:
-curl http://localhost:3002/orders/ORD-AB12CD34
-```
-
-## Running the E2E tests
-
-Keep all four services running, then from the project root:
+In a new terminal (from project root):
 
 ```bash
 npm run seed
+```
+
+This creates three test products with fixed names and prices used by the test suite.
+
+### 4. Run the E2E Tests
+
+From the project root:
+
+```bash
 npm run test:e2e
 ```
 
-`npm run seed` checks that Product Service still exposes the three fixed catalog items (SIA1 T-Shirt PHP 350.00, Tote Bag PHP 150.00, Sticker Pack PHP 50.00). Each Cypress test creates its own orders.
+This runs all tests headlessly. You should see output like:
 
-`npm run test:e2e` runs Cypress headlessly (`cypress run`) with retries off. E2E-03, E2E-04, and E2E-08 need internet so Payment Service can open a PayMongo sandbox Checkout Session.
+```
+  catalog.cy.js
+    ✓ E2E-01 shows the catalog with correct peso prices
+    ✓ E2E-09 blocks checkout with an empty cart
 
-To watch tests in the Cypress UI:
+  orders.cy.js
+    ✓ E2E-02 creates a pending order with the right total
+    ✓ E2E-05 updates the order on the success page
+    ✓ E2E-06 never marks a cancelled order as paid
+
+  checkout.cy.js
+    ✓ E2E-03 gets a checkout URL from PayMongo
+    ✓ E2E-04 hands the customer over to PayMongo
+    ✓ E2E-07 shows a clear error when checkout fails
+
+  security.cy.js
+    ✓ E2E-08 keeps the secret key out of the browser
+
+  9 passing (Xs)
+```
+
+### Alternative Test Commands
 
 ```bash
+# Run tests with browser visible (headed mode)
+npm run test:e2e:headed
+
+# Run in specific browser
+npm run test:e2e:chrome
+npm run test:e2e:firefox
+
+# Open Cypress Test Runner (interactive mode)
 npm run cypress:open
 ```
 
-Spec layout:
+## Test Coverage
 
-- `cypress/e2e/catalog.cy.js` — E2E-01, E2E-09
-- `cypress/e2e/orders.cy.js` — E2E-02, E2E-05, E2E-06
-- `cypress/e2e/checkout.cy.js` — E2E-03, E2E-04, E2E-07
-- `cypress/e2e/security.cy.js` — E2E-08
+All 9 required E2E scenarios are implemented:
 
-See `TEST_PLAN.md` for the ID to spec to author map.
+| ID     | Scenario                         | File             |
+|--------|----------------------------------|------------------|
+| E2E-01 | Catalog with peso prices         | catalog.cy.js    |
+| E2E-02 | Order creation                   | orders.cy.js     |
+| E2E-03 | Checkout session URL             | checkout.cy.js   |
+| E2E-04 | Hand-over to PayMongo            | checkout.cy.js   |
+| E2E-05 | Success page updates order       | orders.cy.js     |
+| E2E-06 | Cancel page handling             | orders.cy.js     |
+| E2E-07 | Checkout failure error           | checkout.cy.js   |
+| E2E-08 | No secrets in browser            | security.cy.js   |
+| E2E-09 | Empty cart validation            | catalog.cy.js    |
 
-## Notes
+See [TEST_PLAN.md](TEST_PLAN.md) for the complete test plan with authors and detailed scenarios.
 
-- All amounts are in **centavos** (PHP x 100). 350.00 PHP is `35000`.
-- This activity intentionally skips webhooks - payment status is only updated
-  when the browser is redirected back to `success_url`. A production system
-  would add a webhook in Payment Service to confirm status server-side
-  instead of trusting the redirect alone.
-- Never use a live key (`sk_live_...`) in this activity - sandbox test keys
-  (`sk_test_...`) only.
-- Tests never read the PayMongo secret. Do not put it in `Cypress.env()`.
+## Documentation
+
+- **[TEST_PLAN.md](TEST_PLAN.md)** — Test scenario mapping and team assignments
+- **[cypress/README.md](cypress/README.md)** — Detailed Cypress testing documentation, custom commands, troubleshooting, and CI/CD setup
+
+## Troubleshooting
+
+### Tests fail: "baseUrl not reachable"
+The frontend service is not running. Start it on port 3000.
+
+### Tests fail: Order creation errors
+1. Check that the Order Service is running on port 3002
+2. Verify test data is seeded: `npm run seed`
+3. Check service health: `curl http://localhost:3002/health`
+
+### Tests timeout on checkout
+1. Verify Payment Service is running: `curl http://localhost:3003/health`
+2. Check PayMongo credentials in `payment-service/.env`
+3. Verify internet connectivity to PayMongo API
+
+### "Secret key exposed" test fails
+Ensure the PayMongo secret key is **only** in `payment-service/.env`, never in:
+- Frontend code or environment variables
+- HTML source
+- JavaScript bundles
+
+## CI/CD
+
+The project includes a GitHub Actions workflow (`.github/workflows/cypress.yml`) that:
+- Runs on every push to `main` or `develop`
+- Tests across Chrome and Firefox browsers
+- Captures videos and screenshots on failure
+
+## Project Structure
+
+```
+.
+├── frontend/               # Static storefront UI
+├── product-service/        # Product catalog API
+├── order-service/          # Order management API
+├── payment-service/        # PayMongo integration
+├── cypress/
+│   ├── e2e/               # Test specifications
+│   ├── fixtures/          # Test data
+│   └── support/           # Custom commands
+├── cypress.config.js      # Cypress configuration
+├── TEST_PLAN.md          # Test scenario mapping
+└── package.json          # Root scripts and Cypress dependency
+```
+
+## License
+
+Academic project for System Integration and Architecture (SIA1).
